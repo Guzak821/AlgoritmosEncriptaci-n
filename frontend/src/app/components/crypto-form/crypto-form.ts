@@ -5,37 +5,50 @@ import { CryptoApiService } from '../../services/crypto-api';
 
 @Component({
   selector: 'app-crypto-form',
+  standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './crypto-form.html',
-  styleUrl: './crypto-form.css',
-  standalone: true
+  styleUrl: './crypto-form.css'
 })
 export class CryptoFormComponent {
+  // Variables vinculadas al HTML mediante [(ngModel)]
   mensaje: string = '';
+  llave: string = '';
   resultado: string = '';
   tipoSeleccionado: string = 'sha256';
 
   constructor(private cryptoApi: CryptoApiService) {}
 
+  /**
+   * Maneja la lógica de Cifrado y Hashing
+   */
   procesar() {
     if (!this.mensaje) {
-      alert('Por favor, ingresa un mensaje');
+      alert('Por favor, ingresa un mensaje para procesar.');
       return;
     }
 
-    // Definimos un objeto para manejar las respuestas de forma genérica
+    // Valida que los métodos que requieren llave la tengan
+    if (this.tipoSeleccionado === 'symmetric' || this.tipoSeleccionado === 'asymetric') {
+      if (!this.llave) {
+        alert('Este método requiere una llave o password.');
+        return;
+      }
+    }
+
+    // Objeto observador genérico para manejar respuestas de la API
     const observer = {
       next: (res: any) => {
-        // Adaptamos la asignación según lo que responda tu API en cada caso
-        this.resultado = res.hash || res.encryptedData || 'Sin respuesta';
+        // Asigna el resultado buscando las posibles propiedades de respuesta del backend
+        this.resultado = res.hash || res.encryptedData || 'Sin respuesta del servidor';
       },
       error: (err: any) => {
-        console.error('Error de conexión:', err);
-        alert('Error al conectar con el backend en el puerto 3000');
+        console.error('Error en la operación:', err);
+        alert('Error al conectar con el backend. Revisa la consola.');
       }
     };
 
-    // Despachador según el tipo seleccionado
+    // Despachador de peticiones según la opción del Select
     switch (this.tipoSeleccionado) {
       case 'sha256':
       case 'sha512':
@@ -43,15 +56,35 @@ export class CryptoFormComponent {
         break;
 
       case 'symmetric':
-        this.cryptoApi.postSymetric(this.mensaje, this.tipoSeleccionado).subscribe(observer);
+        this.cryptoApi.postSymmetric(this.mensaje, this.tipoSeleccionado, this.llave).subscribe(observer);
         break;
 
       case 'asymetric':
-        this.cryptoApi.postAsymetric(this.mensaje, this.tipoSeleccionado).subscribe(observer);
+        this.cryptoApi.postAsymmetric(this.mensaje, this.tipoSeleccionado, this.llave).subscribe(observer);
         break;
 
       default:
-        console.warn('Tipo de cifrado no soportado');
+        console.warn('Tipo de algoritmo no reconocido');
     }
+  }
+
+  /**
+   * Maneja la lógica de Desencriptación
+   */
+  desencriptar() {
+    if (!this.mensaje || !this.llave) {
+      alert('Se requiere el mensaje cifrado en el campo "Mensaje" y la llave correspondiente.');
+      return;
+    }
+
+    this.cryptoApi.postDecrypt(this.mensaje, this.tipoSeleccionado, this.llave).subscribe({
+      next: (res: any) => {
+        this.resultado = res.decryptedData || 'No se pudo desencriptar';
+      },
+      error: (err: any) => {
+        console.error('Error al desencriptar:', err);
+        alert('Error: Revisa que la llave sea correcta o que el formato del mensaje sea válido.');
+      }
+    });
   }
 }

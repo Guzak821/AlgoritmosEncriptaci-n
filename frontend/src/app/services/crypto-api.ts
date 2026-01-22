@@ -5,17 +5,19 @@ import { HttpClient } from '@angular/common/http';
 export class CryptoApiService {
   constructor(private http: HttpClient) {}
 
-  postSymetric(mensaje: string, tipo: string) {
+  postSymmetric(mensaje: string, tipo: string, llave: string) {
     return this.http.post('http://localhost:3000/crypto/encrypt-symmetric', { 
       message: mensaje,
-      type: tipo
+      type: tipo,
+      key: llave
     })
   }
 
-  postAsymetric(mensaje: string, tipo: string){
+  postAsymmetric(mensaje: string, tipo: string, llave: string){
     return this.http.post('http://localhost:3000/crypto/encrypt-asymetric', {
       message: mensaje,
-      type: tipo
+      type: tipo,
+      key: llave
     }
    )
   }
@@ -26,4 +28,11 @@ export class CryptoApiService {
     type: tipo 
   });
 }
+  postDecrypt( mensaje: string, tipo: string, llave: string) {
+    return this.http.post('http://localhost:3000/crypto/decrypt-symmetric', { 
+      message: mensaje,
+      type: tipo,
+      key: llave
+    })
+  }
 }
