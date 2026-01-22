@@ -13,12 +13,22 @@
       <option value="sha512">Hash SHA-512</option>
       <option value="symmetric">Clave Simétrica (AES)</option>
       <option value="asymetric">Clave Asimétrica (RSA)</option>
+      <option value="custom">Algoritmo Propio (XOR-Shift)</option>
     </select>
+  </div>
+
+  <div class="mb-4" *ngIf="tipoSeleccionado === 'asymetric'">
+    <button (click)="obtenerLlavesRSA()" 
+            class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition text-sm font-bold">
+       Generar Par de Llaves RSA
+    </button>
   </div>
 
   <div class="mb-4" *ngIf="tipoSeleccionado !== 'sha256' && tipoSeleccionado !== 'sha512'">
     <label class="block text-sm font-medium text-gray-700">Llave / Password:</label>
-    <input type="password" [(ngModel)]="llave" class="mt-1 block w-full border-2 border-blue-300 rounded-md p-2" placeholder="Ingresa la clave secreta...">
+    <textarea [(ngModel)]="llave" 
+              class="mt-1 block w-full border-2 border-blue-300 rounded-md p-2 h-20 text-xs" 
+              placeholder="Ingresa la clave secreta o pega tu llave RSA..."></textarea>
   </div>
 
   <div class="flex gap-2 justify-center mb-6">
@@ -26,13 +36,13 @@
       Encriptar / Hash
     </button>
     <button (click)="desencriptar()" 
-        class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 shadow-sm font-bold">
-       Desencriptar
+            class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 shadow-sm font-bold">
+      Desencriptar
     </button>
   </div>
 
   <div>
     <label class="block text-sm font-medium text-gray-700">Resultado (Salida):</label>
-    <textarea [(ngModel)]="resultado" readonly class="mt-1 block w-full bg-gray-100 border-2 rounded-md p-2 h-24 break-all"></textarea>
+    <textarea [(ngModel)]="resultado" readonly class="mt-1 block w-full bg-gray-100 border-2 rounded-md p-2 h-32 break-all text-xs"></textarea>
   </div>
 </div>

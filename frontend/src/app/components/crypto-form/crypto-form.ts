@@ -63,6 +63,10 @@ export class CryptoFormComponent {
         this.cryptoApi.postAsymmetric(this.mensaje, this.tipoSeleccionado, this.llave).subscribe(observer);
         break;
 
+      case 'custom':
+        this.cryptoApi.postCustomEncrypt(this.mensaje, this.tipoSeleccionado, this.llave).subscribe(observer);
+        break;
+
       default:
         console.warn('Tipo de algoritmo no reconocido');
     }
@@ -73,18 +77,41 @@ export class CryptoFormComponent {
    */
   desencriptar() {
     if (!this.mensaje || !this.llave) {
-      alert('Se requiere el mensaje cifrado en el campo "Mensaje" y la llave correspondiente.');
+      alert('Se requiere el mensaje cifrado y la llave correspondiente.');
       return;
     }
 
-    this.cryptoApi.postDecrypt(this.mensaje, this.tipoSeleccionado, this.llave).subscribe({
+    const observer = {
       next: (res: any) => {
         this.resultado = res.decryptedData || 'No se pudo desencriptar';
       },
       error: (err: any) => {
         console.error('Error al desencriptar:', err);
-        alert('Error: Revisa que la llave sea correcta o que el formato del mensaje sea válido.');
+        alert('Error: Revisa que la llave sea correcta para el tipo de algoritmo seleccionado.');
       }
-    });
+    };
+
+    // DIFERENCIAR AQUÍ EL TIPO
+    if (this.tipoSeleccionado === 'symmetric') {
+      this.cryptoApi.postDecrypt(this.mensaje, 'symmetric', this.llave).subscribe(observer);
+    } else if (this.tipoSeleccionado === 'asymetric') {
+      // Llamamos explícitamente a la lógica asimétrica
+      this.cryptoApi.postDecrypt(this.mensaje, 'asymetric', this.llave).subscribe(observer);
+    } else if (this.tipoSeleccionado === 'custom') {
+      this.cryptoApi.postCustomDecrypt(this.mensaje, 'custom', this.llave).subscribe(observer);
+    } else {
+      alert('Los algoritmos Hash no se pueden desencriptar.');
+    }
   }
+
+  obtenerLlavesRSA() {
+  this.cryptoApi.generateKeys().subscribe({
+    next: (res: any) => {
+      // Mostramos la pública para que cifre y avisamos que guarde la privada
+      this.llave = res.publicKey; 
+      this.resultado = "TU LLAVE PRIVADA (GUÁRDALA PARA DESCIFRAR):\n\n" + res.privateKey;
+      alert('Se han generado las llaves. Copia la PRIVADA que aparece en el resultado.');
+    }
+  });
+}
 }
