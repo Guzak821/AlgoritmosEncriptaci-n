@@ -5,45 +5,53 @@ import { CryptoApiService } from '../../services/crypto-api';
 
 @Component({
   selector: 'app-crypto-form',
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './crypto-form.html',
   styleUrl: './crypto-form.css',
   standalone: true
 })
 export class CryptoFormComponent {
-  mensaje: string = '';       // Se vincula al primer input (Mensaje)
-  resultado: string = '';     // Se vincula al segundo input (Cifrado)
-  tipoSeleccionado: string = 'sha256'; // Por defecto
+  mensaje: string = '';
+  resultado: string = '';
+  tipoSeleccionado: string = 'sha256';
 
   constructor(private cryptoApi: CryptoApiService) {}
 
-  encrypt() {
-    if (!this.mensaje) return;
+  procesar() {
+    if (!this.mensaje) {
+      alert('Por favor, ingresa un mensaje');
+      return;
+    }
 
-    // Si es un Hash 
-    if (this.tipoSeleccionado === 'sha256' || this.tipoSeleccionado === 'sha512') {
-      this.cryptoApi.postHash(this.mensaje, this.tipoSeleccionado).subscribe({
-        next: (res: any) => this.resultado = res.hash
-      });
-    } 
-    // Si es Simétrico 
-    else if (this.tipoSeleccionado === 'symmetric') {
-      this.cryptoApi.postEncrypt(this.mensaje).subscribe({
-        next: (res: any) => this.resultado = res.encryptedData
-      });
+    // Definimos un objeto para manejar las respuestas de forma genérica
+    const observer = {
+      next: (res: any) => {
+        // Adaptamos la asignación según lo que responda tu API en cada caso
+        this.resultado = res.hash || res.encryptedData || 'Sin respuesta';
+      },
+      error: (err: any) => {
+        console.error('Error de conexión:', err);
+        alert('Error al conectar con el backend en el puerto 3000');
+      }
+    };
+
+    // Despachador según el tipo seleccionado
+    switch (this.tipoSeleccionado) {
+      case 'sha256':
+      case 'sha512':
+        this.cryptoApi.postHash(this.mensaje, this.tipoSeleccionado).subscribe(observer);
+        break;
+
+      case 'symmetric':
+        this.cryptoApi.postSymetric(this.mensaje, this.tipoSeleccionado).subscribe(observer);
+        break;
+
+      case 'asymetric':
+        this.cryptoApi.postAsymetric(this.mensaje, this.tipoSeleccionado).subscribe(observer);
+        break;
+
+      default:
+        console.warn('Tipo de cifrado no soportado');
     }
   }
-  procesar() {
-  if (!this.mensaje) return;
-
-  this.cryptoApi.postHash(this.mensaje, this.tipoSeleccionado).subscribe({
-    next: (res: any) => {
-      this.resultado = res.hash;
-    },
-    error: (err) => {
-      console.error('Error de conexión:', err);
-      alert('Asegúrate de que el backend de NestJS esté encendido en el puerto 3000');
-    }
-  });
-}
 }

@@ -14,6 +14,7 @@
       <option value="sha256">Hash SHA-256</option>
       <option value="sha512">Hash SHA-512</option>
       <option value="symmetric">Clave Simétrica (AES)</option>
+      <option value="asymetryc">Clave Asimétrica</option>
     </select>
   </div>
 
@@ -25,9 +26,7 @@
   </div>
 
   <div>
-    <label class="block text-sm font-medium text-gray-700">Resultado (Cifrado/Hash):</label>
-    <textarea [(ngModel)]="resultado" readonly 
-              class="mt-1 block w-full bg-gray-100 border-2 rounded-md p-2 h-32 break-all">
-    </textarea>
+
+<textarea [(ngModel)]="resultado" readonly class="mt-1 block w-full bg-gray-100 border-2 rounded-md p-2 h-32 break-all"></textarea>
   </div>
 </div>
